@@ -1,0 +1,91 @@
+
+------------------------------------------
+-          MEMORIA DE PRÁCTICAS          -
+-  Autor: Antonio Fernando Mateo Francés -
+------------------------------------------
+
+1. Número de recursos utilizados:
+
++----------------------------+------+-------+------------+-----------+-------+
+|          Site Type         | Used | Fixed | Prohibited | Available | Util% |
++----------------------------+------+-------+------------+-----------+-------+
+| Slice LUTs                 | 2815 |     0 |          0 |     63400 |  4.44 |
+|   LUT as Logic             | 2543 |     0 |          0 |     63400 |  4.01 |
+|   LUT as Memory            |  272 |     0 |          0 |     19000 |  1.43 |
+|     LUT as Distributed RAM |   24 |     0 |            |           |       |
+|     LUT as Shift Register  |  248 |     0 |            |           |       |
+| Slice Registers            | 3838 |     0 |          0 |    126800 |  3.03 |
+|   Register as Flip Flop    | 3838 |     0 |          0 |    126800 |  3.03 |
+|   Register as Latch        |    0 |     0 |          0 |    126800 |  0.00 |
+| F7 Muxes                   |  261 |     0 |          0 |     31700 |  0.82 |
+| F8 Muxes                   |   68 |     0 |          0 |     15850 |  0.43 |
++----------------------------+------+-------+------------+-----------+-------+
+
++--------------------------------------------+------+-------+------------+-----------+-------+
+|                  Site Type                 | Used | Fixed | Prohibited | Available | Util% |
++--------------------------------------------+------+-------+------------+-----------+-------+
+| Slice                                      | 1505 |     0 |          0 |     15850 |  9.50 |
+|   SLICEL                                   | 1082 |     0 |            |           |       |
+|   SLICEM                                   |  423 |     0 |            |           |       |
+| LUT as Logic                               | 2543 |     0 |          0 |     63400 |  4.01 |
+|   using O5 output only                     |    0 |       |            |           |       |
+|   using O6 output only                     | 2156 |       |            |           |       |
+|   using O5 and O6                          |  387 |       |            |           |       |
+| LUT as Memory                              |  272 |     0 |          0 |     19000 |  1.43 |
+|   LUT as Distributed RAM                   |   24 |     0 |            |           |       |
+|     using O5 output only                   |    0 |       |            |           |       |
+|     using O6 output only                   |    0 |       |            |           |       |
+|     using O5 and O6                        |   24 |       |            |           |       |
+|   LUT as Shift Register                    |  248 |     0 |            |           |       |
+|     using O5 output only                   |    3 |       |            |           |       |
+|     using O6 output only                   |   34 |       |            |           |       |
+|     using O5 and O6                        |  211 |       |            |           |       |
+| Slice Registers                            | 3838 |     0 |          0 |    126800 |  3.03 |
+|   Register driven from within the Slice    | 1369 |       |            |           |       |
+|   Register driven from outside the Slice   | 2469 |       |            |           |       |
+|     LUT in front of the register is unused | 1736 |       |            |           |       |
+|     LUT in front of the register is used   |  733 |       |            |           |       |
+| Unique Control Sets                        |  160 |       |          0 |     15850 |  1.01 |
++--------------------------------------------+------+-------+------------+-----------+-------+
+
++------------+------+---------------------+
+|  Ref Name  | Used | Functional Category |
++------------+------+---------------------+
+| FDRE       | 2568 |        Flop & Latch |
+| LUT6       | 1470 |                 LUT |
+| FDCE       | 1209 |        Flop & Latch |
+| LUT2       |  400 |                 LUT |
+| LUT4       |  373 |                 LUT |
+| LUT5       |  346 |                 LUT |
+| SRL16E     |  299 |  Distributed Memory |
+| LUT3       |  298 |                 LUT |
+| MUXF7      |  261 |               MuxFx |
+| SRLC32E    |  158 |  Distributed Memory |
+| CARRY4     |   89 |          CarryLogic |
+| MUXF8      |   68 |               MuxFx |
+| LUT1       |   43 |                 LUT |
+| FDPE       |   41 |        Flop & Latch |
+| RAMD32     |   36 |  Distributed Memory |
+| FDSE       |   20 |        Flop & Latch |
+| RAMS32     |   12 |  Distributed Memory |
+| RAMB36E1   |    9 |        Block Memory |
+| BUFG       |    4 |               Clock |
+| SRLC16E    |    2 |  Distributed Memory |
+| IBUF       |    2 |                  IO |
+| MMCME2_ADV |    1 |               Clock |
+| BSCANE2    |    1 |              Others |
++------------+------+---------------------+
+
+2. Frecuencia máxima de funcionamiento del reloj
+
+La frecuencia máxima de reloj a la que funciona el sistema global es de 100 MHz (sys_clk_pin)
+Esta información puede verse en el Timing Summary, (en .runs/impl_1/design_1_wrapper_timing_summary_routed.rpt), donde se muestra que sys_clk_pin funciona a 100MHz, con un período de 10 nanosegundos.
+Sin embargo, si se entiende que la salida del clock divider es la que representa el sistema, entonces la velocidad sería 10 MHz
+Tras realizar la fase de implementación pueden verse los informes de timings relativos a la plataforma, los cuales todos ellos indican unos pocos nansosegundos
+El slack global (suma de los caminos con slack) son 22.099ns, lo que plantea que 100MHz no puede ser la frecuencia máxima (supera los 10ns el slack). 
+Al no cumplirse los 10ns en todos los caminos, es necesario utilizar otra frecuencia más baja.
+
+3. Camino crítico tras análisis temporal
+
+El camino crítico, definido como aquel que posee el mayor slack de todos los caminos que presentan slack.
+En Inter-clock Paths (desde clk_out hacia sys_clk_pin), se tienen en total 10 caminos con slack, siendo el Path 61 el que presenta mayor slack (1.207ns).
