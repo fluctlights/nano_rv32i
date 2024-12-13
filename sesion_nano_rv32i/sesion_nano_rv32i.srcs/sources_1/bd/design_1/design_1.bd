@@ -1,0 +1,401 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x7FFDA7846FCA52DD",
+      "device": "xc7a100tcsg324-1",
+      "gen_directory": "../../../../sesion_nano_rv32i.gen/sources_1/bd/design_1",
+      "name": "design_1",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2023.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "clk_wiz_0": "",
+      "nano_rv32i_0": "",
+      "d_mem": "",
+      "i_mem": "",
+      "system_ila_0": ""
+    },
+    "ports": {
+      "clk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "CLK_DOMAIN": {
+            "value": "design_1_clk_in1_0",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "100000000",
+            "value_src": "default"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.0",
+            "value_src": "default"
+          }
+        }
+      },
+      "reset_n": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_LOW"
+          }
+        }
+      }
+    },
+    "components": {
+      "clk_wiz_0": {
+        "vlnv": "xilinx.com:ip:clk_wiz:6.0",
+        "ip_revision": "13",
+        "xci_name": "design_1_clk_wiz_0_0",
+        "xci_path": "ip/design_1_clk_wiz_0_0/design_1_clk_wiz_0_0.xci",
+        "inst_hier_path": "clk_wiz_0",
+        "parameters": {
+          "CLKOUT1_JITTER": {
+            "value": "290.478"
+          },
+          "CLKOUT1_PHASE_ERROR": {
+            "value": "133.882"
+          },
+          "CLKOUT1_REQUESTED_OUT_FREQ": {
+            "value": "10.000"
+          },
+          "MMCM_CLKFBOUT_MULT_F": {
+            "value": "15.625"
+          },
+          "MMCM_CLKOUT0_DIVIDE_F": {
+            "value": "78.125"
+          },
+          "MMCM_DIVCLK_DIVIDE": {
+            "value": "2"
+          },
+          "RESET_PORT": {
+            "value": "resetn"
+          },
+          "RESET_TYPE": {
+            "value": "ACTIVE_LOW"
+          }
+        }
+      },
+      "nano_rv32i_0": {
+        "vlnv": "xilinx.com:module_ref:nano_rv32i:1.0",
+        "ip_revision": "1",
+        "xci_name": "design_1_nano_rv32i_0_0",
+        "xci_path": "ip/design_1_nano_rv32i_0_0/design_1_nano_rv32i_0_0.xci",
+        "inst_hier_path": "nano_rv32i_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "nano_rv32i",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk_i": {
+            "direction": "I",
+            "parameters": {
+              "FREQ_HZ": {
+                "value": "10000000",
+                "value_src": "ip_prop"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "ip_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "/clk_wiz_0_clk_out1",
+                "value_src": "ip_prop"
+              }
+            }
+          },
+          "rst_n_i": {
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "user_prop"
+              }
+            }
+          },
+          "i_addr_o": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "i_rd_o": {
+            "direction": "O"
+          },
+          "i_data_i": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "d_addr_o": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "d_data_i": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "d_data_o": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "d_rd_o": {
+            "direction": "O"
+          },
+          "d_we_o": {
+            "direction": "O",
+            "left": "3",
+            "right": "0"
+          }
+        }
+      },
+      "d_mem": {
+        "vlnv": "xilinx.com:ip:blk_mem_gen:8.4",
+        "ip_revision": "7",
+        "xci_name": "design_1_blk_mem_gen_0_0",
+        "xci_path": "ip/design_1_blk_mem_gen_0_0/design_1_blk_mem_gen_0_0.xci",
+        "inst_hier_path": "d_mem",
+        "parameters": {
+          "EN_SAFETY_CKT": {
+            "value": "false"
+          }
+        }
+      },
+      "i_mem": {
+        "vlnv": "xilinx.com:ip:blk_mem_gen:8.4",
+        "ip_revision": "7",
+        "xci_name": "design_1_blk_mem_gen_1_0",
+        "xci_path": "ip/design_1_blk_mem_gen_1_0/design_1_blk_mem_gen_1_0.xci",
+        "inst_hier_path": "i_mem",
+        "parameters": {
+          "Coe_File": {
+            "value": "../../../../../../../../Escritorio/PERTE/Diseño_de_Circuitos/Lab3/nano-rv32i-solucion/nano-rv32i/src/instructions.coe"
+          },
+          "EN_SAFETY_CKT": {
+            "value": "false"
+          },
+          "Load_Init_File": {
+            "value": "true"
+          },
+          "Memory_Type": {
+            "value": "Single_Port_ROM"
+          }
+        }
+      },
+      "system_ila_0": {
+        "vlnv": "xilinx.com:ip:system_ila:1.1",
+        "ip_revision": "15",
+        "xci_name": "design_1_system_ila_0_0",
+        "xci_path": "ip/design_1_system_ila_0_0/design_1_system_ila_0_0.xci",
+        "inst_hier_path": "system_ila_0",
+        "parameters": {
+          "C_MON_TYPE": {
+            "value": "NATIVE"
+          },
+          "C_NUM_OF_PROBES": {
+            "value": "9"
+          },
+          "C_PROBE0_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE1_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE2_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE3_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE4_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE5_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE6_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE7_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE8_TYPE": {
+            "value": "0"
+          }
+        }
+      }
+    },
+    "nets": {
+      "clk_in1_0_1": {
+        "ports": [
+          "clk",
+          "clk_wiz_0/clk_in1",
+          "system_ila_0/clk"
+        ]
+      },
+      "clk_wiz_0_clk_out1": {
+        "ports": [
+          "clk_wiz_0/clk_out1",
+          "nano_rv32i_0/clk_i",
+          "i_mem/clka",
+          "d_mem/clka"
+        ]
+      },
+      "d_mem_douta": {
+        "ports": [
+          "d_mem/douta",
+          "nano_rv32i_0/d_data_i",
+          "system_ila_0/probe0"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "i_mem_douta": {
+        "ports": [
+          "i_mem/douta",
+          "nano_rv32i_0/i_data_i",
+          "system_ila_0/probe1"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "nano_rv32i_0_d_addr_o": {
+        "ports": [
+          "nano_rv32i_0/d_addr_o",
+          "d_mem/addra",
+          "system_ila_0/probe2"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "nano_rv32i_0_d_data_o": {
+        "ports": [
+          "nano_rv32i_0/d_data_o",
+          "d_mem/dina",
+          "system_ila_0/probe3"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "nano_rv32i_0_d_rd_o": {
+        "ports": [
+          "nano_rv32i_0/d_rd_o",
+          "d_mem/ena",
+          "system_ila_0/probe4"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "nano_rv32i_0_d_we_o": {
+        "ports": [
+          "nano_rv32i_0/d_we_o",
+          "d_mem/wea",
+          "system_ila_0/probe5"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "nano_rv32i_0_i_addr_o": {
+        "ports": [
+          "nano_rv32i_0/i_addr_o",
+          "i_mem/addra",
+          "system_ila_0/probe6"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "nano_rv32i_0_i_rd_o": {
+        "ports": [
+          "nano_rv32i_0/i_rd_o",
+          "i_mem/ena",
+          "system_ila_0/probe7"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      },
+      "reset_n_1": {
+        "ports": [
+          "reset_n",
+          "clk_wiz_0/resetn",
+          "nano_rv32i_0/rst_n_i",
+          "system_ila_0/probe8"
+        ],
+        "hdl_attributes": {
+          "DEBUG": {
+            "value": "true"
+          },
+          "MARK_DEBUG": {
+            "value": "true"
+          }
+        }
+      }
+    }
+  }
+}
