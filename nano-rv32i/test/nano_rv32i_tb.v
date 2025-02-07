@@ -63,6 +63,7 @@ module tb_nano_rv32i;
         instruction_mem[7] = 32'h0000e463; // bltu x1, x0, 8
         instruction_mem[8] = 32'h0000f463; // bgeu x1, x0, 8
         instruction_mem[10] = 32'h00007463; // bgeu x0, x0, 8
+        instruction_mem[12] = 32'h00000263; // beq x1, x0, 2
 
         // Inicializar la memoria de datos a cero
         for (i = 0; i < 32; i = i + 1) begin

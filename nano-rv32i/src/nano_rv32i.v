@@ -24,7 +24,7 @@ module nano_rv32i (
     wire        mem_read_w;         // Señal que indica si se debe leer desde la memoria de datos | DECODER -> MEMORY INTERFACE
     wire        mem_write_w;        // Señal que indica si se debe escribir en la memoria de datos | DECODER -> MEMORY INTERFACE
     wire        mem_to_reg_w;       // Señal que indica si el valor a escribir en el registro proviene de la memoria (LOAD) | DECODER -> REGFILE
-    
+
     ///////////////////////////////////////////
     // ADICION DE LOGICA PARA MANEJAR SALTOS //
     ///////////////////////////////////////////
@@ -150,6 +150,9 @@ module nano_rv32i (
         end
     end
     
+    
+
+
     ////////////////////////////////////////////////////////////////////////
     // MODULO PARA REALIZAR EL TIPO DE COMPARACION CONCRETO EN LOS SALTOS //
     ////////////////////////////////////////////////////////////////////////
@@ -159,7 +162,7 @@ module nano_rv32i (
         .zero_i(zero_w),
         .alu_result_i(alu_result_w),
         .funct3_i(funct3_w),
-        .take_branch_o(take_branch_w)
+        .take_branch_o(taken_branch)
     );
     
     // ------------------------
@@ -177,5 +180,74 @@ module nano_rv32i (
     assign write_data_w = jump_w ? pc_r + 4 :
                           mem_to_reg_w ? d_data_i : 
                           alu_result_w;
+
+    ////////////////
+    // ASERCIONES //
+    ////////////////
+
+    property opcode_B_ok;
+        @(posedge clk) (branch_w |-> (inst[6:0] == 7'b1100011));
+    endproperty
+
+    property opcode_B_beq;
+        @(posedge clk) (branch_w && taken_branch == 1'b0) |-> ((inst[6:0] == 7'b1100011) && (inst[14:12] == 3'b000));
+    endproperty
+
+    property opcode_B_bne;
+        @(posedge clk) (branch_w && taken_branch != 1'b0) |-> ((inst[6:0] == 7'b1100011) && (inst[14:12] == 3'b001));
+    endproperty
+
+    property opcode_B_blt;
+        @(posedge clk) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b100) |-> ((inst[6:0] == 7'b1100011) && (inst[14:12] == 3'b100));
+    endproperty
+    property opcode_B_bge;
+        @(posedge clk) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b101) |-> ((inst[6:0] == 7'b1100011) && (inst[14:12] == 3'b101));
+    endproperty
+
+    property opcode_B_bltu;
+        @(posedge clk) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b110) |-> ((inst[6:0] == 7'b1100011) && (inst[14:12] == 3'b110));
+    endproperty
+
+    property opcode_B_bgeu;
+        @(posedge clk) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b111) |-> ((inst[6:0] == 7'b1100011) && (inst[14:12] == 3'b111));
+    endproperty
+
+    property opcode_B_not_recognized_operation;
+        @(posedge clk) (branch_w && (taken_branch == alu_result_w) (funct3_w != 3'b000 || funct3_w != 3'b001 || funct3_w != 3'b010 || funct3_w != 3'b011 || funct3_w != 3'b100 || funct3_w != 3'b101 || funct3_w != 3'b110 || funct3_w != 3'b111)) 
+        |-> 
+        ((inst[6:0] == 7'b1100011) && (inst[14:12] == 3'b111));
+    endproperty
+
+    assert property 
+        @(posedge clk) (disable iff (reset) opcode_B_ok) //opcode 1100011 para instruccion B
+            else $error("Error: Instrucción tipo B, opcode no codificado correctamente.");
+    
+    assert property 
+        @(posedge clk) (disable iff (reset) opcode_B_beq) //instruccion B y BEQ (cuando inst[14:12] == 3'b000) y que el resultado en ALU sea 0
+            else $error("Error: Instrucción tipo BEQ no codificada correctamente.");
+    
+    assert property 
+        @(posedge clk) (disable iff (reset) opcode_B_bne) //instruccion B y BNE (cuando inst[14:12] == 3'b001) y que el resultado en ALU sea distinto de 0
+            else $error("Error: Instrucción tipo BNE no codificada correctamente.");
+    
+    assert property 
+        @(posedge clk) (disable iff (reset) opcode_B_blt) //instruccion B y BLT (cuando inst[14:12] == 3'b100) y que func3 sea el mismo valor, para asegurar que se ha manejado correctamente
+            else $error("Error: Instrucción tipo BLT no codificada correctamente.");
+
+    assert property 
+        @(posedge clk) (disable iff (reset) opcode_B_bge) //instruccion B y BGE (cuando inst[14:12] == 3'b101) y que func3 sea el mismo valor, para asegurar que se ha manejado correctamente
+            else $error("Error: Instrucción tipo BGE no codificada correctamente.");
+
+    assert property 
+        @(posedge clk) (disable iff (reset) opcode_B_bltu) //instruccion B y BLTU (cuando inst[14:12] == 3'b110) y que func3 sea el mismo valor, para asegurar que se ha manejado correctamente
+            else $error("Error: Instrucción tipo BLTU no codificada correctamente.");
+
+    assert property 
+        @(posedge clk) (disable iff (reset) opcode_B_bgeu) //instruccion B y BGEU (cuando inst[14:12] == 3'b111) y que func3 sea el mismo valor, para asegurar que se ha manejado correctamente
+            else $error("Error: Instrucción tipo BGEU no codificada correctamente.");
+
+    ///////////////////////
+    // FIN DE ASERCIONES //
+    ///////////////////////
     
 endmodule
