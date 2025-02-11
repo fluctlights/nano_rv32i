@@ -4,6 +4,7 @@
 `include "decoder.v"
 `include "lsu.v"
 `include "regfile.v"
+`include "design.sv"
 
 
 module testbench;
@@ -57,38 +58,28 @@ module testbench;
         #10 rst_n = 1;  // Quitar el reset después de 10 ns
 
         // Inicializar la memoria de instrucciones con la instrucción ADDI
-        //instruction_mem[0] = 32'h00500093;  // ADDI x1, x0, 5
+        instruction_mem[0] = 32'h00500093;  // ADDI x1, x0, 5
         
         /////////////////////////////////////////////////////////////////////
         // INSTRUCCIONESREALIZADAS PARA PROBAR LAS INSTRUCCIONES DE SALTO //
         /////////////////////////////////////////////////////////////////////
         
         instruction_mem[1] = 32'h0000d663; // bne x1, x0, 12
-        instruction_mem[2] = 32'h00105663; // bge x0, x1, 12
-        instruction_mem[3] = 32'h00106463; // bltu x0, x1, 8
-        instruction_mem[4] = 32'h0000e463; // bltu x1, x0, 8
-        instruction_mem[5] = 32'h0000f463; // bgeu x1, x0, 8
-        instruction_mem[6] = 32'h00007463; // bgeu x0, x0, 8
-      	instruction_mem[7] = 32'h00843XXX; // BAD BEQ x2, x3, 8
-      	instruction_mem[8] = 32'h00843011; // BEQ x2, x3, 8
-      	instruction_mem[9] = 32'h00500093;  // ADDI x1, x0, 5
+        instruction_mem[4] = 32'h00105663; // bge x0, x1, 12
+        instruction_mem[8] = 32'h00106463; // bltu x0, x1, 8
+        instruction_mem[12] = 32'h0000e463; // bltu x1, x0, 8
+        instruction_mem[16] = 32'h0000f463; // bgeu x1, x0, 8
+        instruction_mem[20] = 32'h00007463; // bgeu x0, x0, 8
+        instruction_mem[24] = 32'h00843XXX; // BAD BEQ x2, x3, 8
+        instruction_mem[32] = 32'h00500093;  // ADDI x1, x0, 5
 
         // Inicializar la memoria de datos a cero
         for (i = 0; i < 32; i = i + 1) begin
             data_mem[i] = 32'h00000000;
         end
 
-        // Simulación por 100 ciclos de reloj
-        #150 $finish;
+        // Simulación por 200 ciclos de reloj
+        #200 $finish;
     end
 
-        //////////////////////////
-        // MONITOREO DE SEÑALES //
-        //////////////////////////
-    /*    
-	initial begin
-		$monitor("Time: %d | PC: %h | Instr: %h | Addr: %h | DDataIn: %h | DDataOut: %h | D_RD: %b | D_WR: %b | Is_branch: %b ",
-		     $time, i_addr, i_data, d_addr, d_data_in, d_data_out, d_rd, d_wr, branch_w);
-	end
-	*/
 endmodule

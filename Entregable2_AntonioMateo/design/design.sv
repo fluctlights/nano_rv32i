@@ -1,4 +1,4 @@
-module alu (
+module alu_32b (
     input [31:0] a_i,          // Primer operando
     input [31:0] b_i,          // Segundo operando
     input [3:0] alu_op_i,      // Operación a realizar
@@ -27,7 +27,7 @@ module alu (
             4'b1010: result_o = a_i >= b_i ? 32'b1 : 32'b0; 
             4'b1011: result_o = ($signed(a_i) >= $signed(b_i)) ? 32'b1 : 32'b0; 
             
-            default: ;      // Valor por defecto
+            default: ;     // Valor por defecto
         endcase
 
         // Asignar la señal de zero
