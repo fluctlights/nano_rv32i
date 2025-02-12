@@ -1,3 +1,9 @@
+`include "alu.v"
+`include "decoder.v"
+`include "lsu.v"
+`include "regfile.v"
+`include "compare.v"
+
 module nano_rv32i (
     input           clk_i,          // Señal de reloj (clock input)
     input           rst_n_i,        // Señal de reset activo en bajo (active-low reset)
@@ -7,11 +13,11 @@ module nano_rv32i (
     input      [31:0] i_data_i,     // Instrucción de 32 bits leída desde la memoria de instrucciones
 
     output reg [31:0] d_addr_o,     // Dirección de memoria de datos para operaciones de carga/almacenamiento (lectura/escritura)
-    input       [31:0] d_data_i,     // Dato de 32 bits leído desde la memoria de datos
+    input       [31:0] d_data_i,    // Dato de 32 bits leído desde la memoria de datos
     output reg [31:0] d_data_o,     // Dato de 32 bits que se va a escribir en la memoria de datos
     output reg        d_rd_o,       // Señal para activar la lectura de datos desde la memoria
     output reg        d_wr_o,       // Señal para activar la escritura de datos en la memoria
-    output reg [3:0] d_we_o      // Señal de habilitación de escritura de memoria
+    output reg [3:0] d_we_o         // Señal de habilitación de escritura de memoria
 );
 
     wire [3:0]  alu_op_w;           // Operación que la ALU debe realizar (add, sub, etc.) | DECODER -> ALU
@@ -59,30 +65,74 @@ module nano_rv32i (
 
     wire stall_w;
     reg load_ready_w;
- 
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
-            pc_r <= 32'b0;
-
-        end else if (pc_write_w) begin
-            if (jump_w) begin
-                pc_r <= pc_r + {{18{imm_w[12]}}, imm_w};  // Salto incondicional
-
-            end else if (branch_w && zero_w) begin
-                pc_r <= pc_r + {{18{imm_w[12]}}, imm_w};  // Salto condicional (beq)
-
-            end else if (!stall_w) begin
-                pc_r <= pc_r + 4;  // Siguiente instrucción
-
-            end
-        end
-    end
 
     always @(*) begin
         i_addr_o <= pc_r;
         i_rd_o <= 1'b1;
     end
 
+	always @(posedge clk_i or negedge rst_n_i) begin
+        if (!rst_n_i) begin
+            pc_r <= 32'b0;  // Reiniciar el PC en reset
+        end else if (pc_write_w) begin
+            if (jump_w) begin
+                // Salto incondicional (JAL, JALR)
+                pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]};  
+            end else if (taken_branch) begin
+                case (funct3_w) 
+                    // BEQ
+                    3'b000: begin
+                        if (zero_w) begin
+                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
+                        end
+                    end
+
+                    // BNE
+                    3'b001: begin
+                        if (~zero_w) begin
+                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
+                        end
+                    end
+
+                    // BLT
+                    3'b100: begin
+                        if (zero_w) begin
+                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
+                        end
+                    end
+
+                    // BGE
+                    3'b101: begin
+                        if (~zero_w) begin
+                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
+                        end
+                    end
+
+                    // BLTU
+                    3'b110: begin
+                        if (zero_w) begin
+                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
+                        end
+                    end
+
+                    // BGEU
+                    3'b111: begin
+                        if (~zero_w) begin
+                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
+                        end
+                    end
+
+                    default: begin
+                        // Opcional: Agregar un caso por defecto
+                    end
+                endcase
+            end else if (!stall_w) begin
+                // Avance normal del PC
+                pc_r <= pc_r + 4;
+            end
+        end
+    end
+  
     decoder decoder_inst (
         .instr_i(i_data_i),
         .alu_op_o(alu_op_w),
@@ -137,6 +187,19 @@ module nano_rv32i (
         .d_we_o(d_we_w)
     );
 
+  
+  	////////////////////////////////////////////////////////////////////////
+    // MODULO PARA REALIZAR EL TIPO DE COMPARACION CONCRETO EN LOS SALTOS //
+    ////////////////////////////////////////////////////////////////////////
+    
+    compare compare_inst (
+        .branch_i(branch_w),
+        .zero_i(zero_w),
+        .alu_result_i(alu_result_w),
+        .funct3_i(funct3_w),
+        .take_branch_o(taken_branch)
+    );
+  
     // Ciclo de espera extra para las intrucciones de carga de memoria
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i) begin
@@ -153,18 +216,9 @@ module nano_rv32i (
     
 
 
-    ////////////////////////////////////////////////////////////////////////
-    // MODULO PARA REALIZAR EL TIPO DE COMPARACION CONCRETO EN LOS SALTOS //
-    ////////////////////////////////////////////////////////////////////////
     
-    compare compare_inst (
-        .branch_i(branch_w),
-        .zero_i(zero_w),
-        .alu_result_i(alu_result_w),
-        .funct3_i(funct3_w),
-        .take_branch_o(taken_branch)
-    );
     
+  
     // ------------------------
     // -- completar
     assign stall_w = (ls_w && mem_read_w) && !load_ready_w;
@@ -181,12 +235,6 @@ module nano_rv32i (
                           mem_to_reg_w ? d_data_i : 
                           alu_result_w;
 
-  	initial begin
-		$monitor("Time: %d | PC: %h | Instr: %h | Addr: %h | DDataIn: %h | DDataOut: %h | D_RD: %b | D_WR: %b | Is_branch: %b ",
-		     $time, i_addr_o, i_data_i, d_addr_o, d_data_i, d_data_o, d_rd_o, d_wr_o, branch_w);
-	end
-  
-  
     ////////////////
     // ASERCIONES //
     ////////////////
@@ -198,38 +246,38 @@ module nano_rv32i (
     endproperty
 
     property opcode_B_beq;
-        @(posedge clk_i) ((branch_w && taken_branch == 1'b0) |-> 
+      @(posedge clk_i) ((branch_w && funct3_w == 3'b000) |-> 
             ((i_data_i[6:0] == 7'b1100011) && (i_data_i[14:12] == 3'b000)));
     endproperty
 
     property opcode_B_bne;
-        @(posedge clk_i) (branch_w && (taken_branch != 1'b0)) |-> 
+      @(posedge clk_i) (branch_w && funct3_w == 3'b001) |-> 
             ((i_data_i[6:0] == 7'b1100011) && (i_data_i[14:12] == 3'b001));
     endproperty
 
     property opcode_B_blt;
-        @(posedge clk_i) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b100) |-> 
+        @(posedge clk_i) (branch_w && funct3_w == 3'b100) |-> 
             ((i_data_i[6:0] == 7'b1100011) && (i_data_i[14:12] == 3'b100));
     endproperty
 
     property opcode_B_bge;
-        @(posedge clk_i) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b101) |-> 
+      @(posedge clk_i) (branch_w && funct3_w == 3'b101) |-> 
             ((i_data_i[6:0] == 7'b1100011) && (i_data_i[14:12] == 3'b101));
     endproperty
 
     property opcode_B_bltu;
-        @(posedge clk_i) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b110) |-> 
+        @(posedge clk_i) (branch_w && funct3_w == 3'b110) |-> 
             ((i_data_i[6:0] == 7'b1100011) && (i_data_i[14:12] == 3'b110));
     endproperty
 
     property opcode_B_bgeu;
-        @(posedge clk_i) (branch_w && (taken_branch == alu_result_w) && funct3_w == 3'b111) |-> 
+        @(posedge clk_i) (branch_w && funct3_w == 3'b111) |-> 
             ((i_data_i[6:0] == 7'b1100011) && (i_data_i[14:12] == 3'b111));
     endproperty
 
     property opcode_B_not_recognized_operation;
-        @(posedge clk_i) (branch_w && (taken_branch == alu_result_w) && 
-        !(funct3_w inside {3'b000, 3'b001, 3'b100, 3'b101, 3'b110, 3'b111})) |-> 
+      @(posedge clk_i) (branch_w &&
+          !(funct3_w inside {3'b000, 3'b001, 3'b100, 3'b101, 3'b110, 3'b111})) |-> 
         ((i_data_i[6:0] == 7'b1100011));
     endproperty
 

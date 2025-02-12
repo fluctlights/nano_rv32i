@@ -1,24 +1,15 @@
-`timescale 1ns / 1ps
-`include "alu.v"
-`include "compare.v"
-`include "decoder.v"
-`include "lsu.v"
-`include "regfile.v"
-`include "design.sv"
-
-
-module testbench;
+module tb_nano_rv32i;
 
     reg           clk;       // Señal de reloj
     reg           rst_n;     // Señal de reset
     wire [31:0]   i_addr;    // Dirección de la instrucción actual
-    wire [31:0]   i_data;    // Instrucción actual
+    reg [31:0]   i_data;    // Instrucción actual
     wire [31:0]   d_addr;    // Dirección de datos
-    wire [31:0]   d_data_in; // Dato de entrada para la memoria de datos
+    reg [31:0]   d_data_in; // Dato de entrada para la memoria de datos
     wire [31:0]   d_data_out;// Dato de salida de la memoria de datos
     wire          d_rd;      // Señal de lectura de memoria
     wire          d_wr;      // Señal de escritura de memoria
-    wire          i_rd;      // Señal de lectura de instrucción
+	wire          i_rd;      // Señal de lectura de instrucción
 
     // Instancia del módulo nano_rv32i
     nano_rv32i uut (
@@ -30,56 +21,83 @@ module testbench;
         .d_addr_o(d_addr),
         .d_data_i(d_data_in),
         .d_data_o(d_data_out),
-        .d_rd_o(d_rd),
-        .d_wr_o(d_wr)
+        .d_rd_o(d_rd)
+ //       .d_wr_o(d_wr)
     );
 
-    // Memoria de instrucciones (solo una instrucción ADDI)
-    reg [31:0] instruction_mem [0:31];  // Memoria de instrucciones (32 posiciones)
-    
-    // Memoria de datos (por si se necesita leer/escribir datos)
-    reg [31:0] data_mem [0:31];  // Memoria de datos (32 posiciones)
 
-    // Declarar la variable de bucle fuera del bloque initial
-    integer i;
+   // Generador de reloj
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // Periodo de 10 ns
+    end
 
-    // Generación del reloj
-    always #5 clk = ~clk;
+    // Randomización de instrucciones de tipo B
+    class InstructionGen;
+        rand bit [6:0] opcode;    // Código de operación (bits 6-0)
+        rand bit [4:0] rs1;       // Registro fuente 1 (bits 19-15)
+        rand bit [4:0] rs2;       // Registro fuente 2 (bits 24-20)
+        rand bit [2:0] funct3;    // Campo funct3 (bits 14-12)
+        rand bit [11:0] imm;      // Inmediato (bits 31-20)
 
-    // Asignar la instrucción de la memoria
-    assign i_data = instruction_mem[i_addr >> 2];  // Se asume que las direcciones son byte-aligned (múltiplo de 4)
-    assign d_data_in = data_mem[d_addr >> 2];      // Se asume que las direcciones son byte-aligned (múltiplo de 4)
+        // Restringir a solo instrucciones de tipo B
+        constraint opcode_constraint {
+            opcode inside {7'b1100011}; // Opcodes de tipo B
+        }
 
-    // Testbench para probar la instrucción ADDI
+        // Restringir el inmediato para que sea múltiplo de 4
+        constraint imm_constraint {
+            imm % 4 == 0; // El inmediato debe ser múltiplo de 4
+        }
+
+        // Función para empaquetar la instrucción tipo B
+        function [31:0] pack_instruction();
+            // Las instrucciones de tipo B tienen el inmediato en una forma especial
+            // Se reorganizan los bits del inmediato
+            // Los 12 bits del inmediato se distribuyen de la siguiente manera:
+            // [imm[11], imm[10:5], rs2, rs1, imm[4:1], imm[11], opcode]
+            return {imm[11], imm[10:5], rs2, rs1, imm[4:1], imm[11], opcode};
+        endfunction
+    endclass
+
+    // Instancia del generador de instrucciones
+    InstructionGen instr_gen;
+
+    // Testbench principal
     initial begin
         // Inicialización
-        clk = 0;
         rst_n = 0;
-        #10 rst_n = 1;  // Quitar el reset después de 10 ns
+        i_data = 32'b0;
+        d_data_in = 32'b0;
+        instr_gen = new();
 
-        // Inicializar la memoria de instrucciones con la instrucción ADDI
-        instruction_mem[0] = 32'h00500093;  // ADDI x1, x0, 5
-        
-        /////////////////////////////////////////////////////////////////////
-        // INSTRUCCIONESREALIZADAS PARA PROBAR LAS INSTRUCCIONES DE SALTO //
-        /////////////////////////////////////////////////////////////////////
-        
-        instruction_mem[1] = 32'h0000d663; // bne x1, x0, 12
-        instruction_mem[4] = 32'h00105663; // bge x0, x1, 12
-        instruction_mem[8] = 32'h00106463; // bltu x0, x1, 8
-        instruction_mem[12] = 32'h0000e463; // bltu x1, x0, 8
-        instruction_mem[16] = 32'h0000f463; // bgeu x1, x0, 8
-        instruction_mem[20] = 32'h00007463; // bgeu x0, x0, 8
-        instruction_mem[24] = 32'h00843XXX; // BAD BEQ x2, x3, 8
-        instruction_mem[32] = 32'h00500093;  // ADDI x1, x0, 5
+        // Reset activo por 10 ciclos de reloj
+        repeat (10) @(posedge clk);
+        rst_n = 1;
 
-        // Inicializar la memoria de datos a cero
-        for (i = 0; i < 32; i = i + 1) begin
-            data_mem[i] = 32'h00000000;
+        // Simulación principal
+        forever @(posedge clk) begin
+            if (i_rd) begin
+                // Generar una instrucción aleatoria cada vez que el DUT solicita una instrucción
+                assert(instr_gen.randomize()) else $fatal("Error al randomizar la instrucción");
+                i_data = instr_gen.pack_instruction();
+                $display("Instrucción generada: %h, PC: %h", i_data, i_addr);
+            end
         end
-
-        // Simulación por 200 ciclos de reloj
-        #200 $finish;
     end
+
+   // Finalización de la simulación
+   initial begin
+        #1000; // Simular 1000 ns
+        $stop;
+   end
+          
+  initial begin
+    // Dump waves
+    // $dumpfile("output_sim.vcd");
+    $dumpfile();
+    $dumpvars(1, tb_nano_rv32i,tb_nano_rv32i.uut,tb_nano_rv32i.uut.decoder_inst);
+    $dumpvars(0,tb_nano_rv32i.uut.regfile_inst);
+  end    
 
 endmodule
