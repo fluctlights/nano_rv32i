@@ -79,53 +79,8 @@ module nano_rv32i (
                 // Salto incondicional (JAL, JALR)
                 pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]};  
             end else if (taken_branch) begin
-                case (funct3_w) 
-                    // BEQ
-                    3'b000: begin
-                        if (zero_w) begin
-                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
-                        end
-                    end
+              pc_r <= pc_r + {{18{imm_w[12]}}, imm_w}; 
 
-                    // BNE
-                    3'b001: begin
-                        if (~zero_w) begin
-                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
-                        end
-                    end
-
-                    // BLT
-                    3'b100: begin
-                        if (zero_w) begin
-                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
-                        end
-                    end
-
-                    // BGE
-                    3'b101: begin
-                        if (~zero_w) begin
-                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
-                        end
-                    end
-
-                    // BLTU
-                    3'b110: begin
-                        if (zero_w) begin
-                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
-                        end
-                    end
-
-                    // BGEU
-                    3'b111: begin
-                        if (~zero_w) begin
-                            pc_r <= pc_r + {{18{imm_w[12]}}, imm_w[12:0]}; 
-                        end
-                    end
-
-                    default: begin
-                        // Opcional: Agregar un caso por defecto
-                    end
-                endcase
             end else if (!stall_w) begin
                 // Avance normal del PC
                 pc_r <= pc_r + 4;

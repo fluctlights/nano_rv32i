@@ -56,12 +56,19 @@ module tb_nano_rv32i;
             // Se reorganizan los bits del inmediato
             // Los 12 bits del inmediato se distribuyen de la siguiente manera:
             // [imm[11], imm[10:5], rs2, rs1, imm[4:1], imm[11], opcode]
+          
+          	$display("Decodificación de instrucción tipo B:");
+          	$display("  rs1: %0d", rs1);
+          	$display("  rs2: %0d", rs2);
+          	$display("  funct3: %0b", funct3);
+
             return {imm[11], imm[10:5], rs2, rs1, imm[4:1], imm[11], opcode};
         endfunction
     endclass
 
     // Instancia del generador de instrucciones
     InstructionGen instr_gen;
+    //bit [11:0] imm;
 
     // Testbench principal
     initial begin
@@ -81,7 +88,9 @@ module tb_nano_rv32i;
                 // Generar una instrucción aleatoria cada vez que el DUT solicita una instrucción
                 assert(instr_gen.randomize()) else $fatal("Error al randomizar la instrucción");
                 i_data = instr_gen.pack_instruction();
-                $display("Instrucción generada: %h, PC: %h", i_data, i_addr);
+              	$display("Instrucción generada: %h, PC: %h", i_data, i_addr);
+              	//imm = {i_data[7], i_data[30:25], i_data[11:8]};
+              	//$display("  immediate: %0b", imm);
             end
         end
     end
